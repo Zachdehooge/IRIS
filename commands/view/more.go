@@ -8,6 +8,8 @@ func init() {
 	spec.Register(&spec.Spec{
 		Name:        "more",
 		Description: "Opposite of less",
+		MaxArgs:     1,
+		Generator:   spec.FileGenerator(),
 		Options: []spec.Option{
 			{Name: "-d", Description: "Do not pause after any line containing a ^L (form feed)"},
 			{Name: "-f", Description: "Count logical lines, rather than screen lines"},

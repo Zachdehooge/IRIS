@@ -61,9 +61,13 @@ func Lookup(input string) []Suggestion {
 
 	scanExternalCommands()
 
-	// if you have an alias in your shell config like: alias gca="git commit -a"
-	// if the first word match it, IRIS will suggest "git commit -a"
-	if len(tokens) > 1 {
+	// if you have an alias in your shell config like: alias nv="nvim"
+	// expand it even when there's only one token (e.g. "nv ") so that the
+	// target spec's Generator (FileGenerator etc.) can still fire.
+	// only expand when there's a trailing space — i.e. the user has committed
+	// to the alias name and is now typing arguments (tokens last elem == "")
+	hasTrailingSpace := len(tokens) > 0 && tokens[len(tokens)-1] == ""
+	if hasTrailingSpace || len(tokens) > 1 {
 		if target, ok := aliases[tokens[0]]; ok {
 			aliasTokens := Tokenize(target)
 			if len(aliasTokens) > 0 && aliasTokens[len(aliasTokens)-1] == "" {
@@ -202,10 +206,28 @@ func Lookup(input string) []Suggestion {
 	linePrefix := linePrefixBuilder.String()
 
 	if currentGen != nil && allowMoreArgs {
-		genResults := currentGen(tokens, prefix, partial)
+		genPartial := partial
+		genLinePrefix := linePrefix
+
+		if partial == "" && len(tokens) >= 3 {
+			prevToken := tokens[len(tokens)-2]
+			if strings.HasSuffix(prevToken, "/") || strings.HasSuffix(prevToken, "\\") {
+				genPartial = prevToken
+				lpBuilder := strings.Builder{}
+				for i := 0; i < len(tokens)-2; i++ {
+					if i > 0 {
+						lpBuilder.WriteByte(' ')
+					}
+					lpBuilder.WriteString(tokens[i])
+				}
+				genLinePrefix = lpBuilder.String()
+			}
+		}
+
+		genResults := currentGen(tokens, prefix, genPartial)
 
 		for _, g := range genResults {
-			if partial != "" && !HasPrefix(g.Cmd, partial) && !strings.Contains(g.Cmd, partial) {
+			if genPartial != "" && !HasPrefix(g.Cmd, genPartial) && !strings.Contains(g.Cmd, genPartial) {
 				continue
 			}
 
@@ -220,8 +242,10 @@ func Lookup(input string) []Suggestion {
 			finalCmd := ""
 			if len(tokens) > depth+1 && strings.HasPrefix(g.Cmd, tokens[depth]) {
 				finalCmd = prefix + " " + suggested
+			} else if genLinePrefix != "" {
+				finalCmd = genLinePrefix + " " + suggested
 			} else {
-				finalCmd = strings.TrimSpace(linePrefix) + " " + suggested
+				finalCmd = suggested
 			}
 
 			newTokens := Tokenize(finalCmd)
@@ -267,8 +291,16 @@ func Lookup(input string) []Suggestion {
 	for _, opt := range currentOpts {
 		trimmedOpt := strings.TrimLeft(opt.Name, "-")
 		if !usedOpts[opt.Name] && (partial == "" || HasPrefix(opt.Name, partial) || HasPrefix(trimmedOpt, partial)) {
+			optPriority := opt.Priority
+			if optPriority == 0 {
+				if strings.HasPrefix(partial, "-") {
+					optPriority = 80
+				} else {
+					optPriority = 10
+				}
+			}
 			results = append(results, Suggestion{
-				Cmd: linePrefix + " " + opt.Name, Desc: opt.Description, Icon: rootCmdName, Priority: opt.Priority,
+				Cmd: linePrefix + " " + opt.Name, Desc: opt.Description, Icon: rootCmdName, Priority: optPriority,
 			})
 		}
 	}

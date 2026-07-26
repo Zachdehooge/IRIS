@@ -8,6 +8,8 @@ func init() {
 	spec.Register(&spec.Spec{
 		Name:        "glow",
 		Description: "Render markdown on the CLI, with pizzazz!",
+		MaxArgs:     1,
+		Generator:   spec.FileGenerator(),
 		Subcommands: []spec.Subcommand{
 			{Name: "config", Description: "Edit the glow config file"},
 			{Name: "help", Description: "Help about any command"},

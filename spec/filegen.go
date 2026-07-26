@@ -104,8 +104,9 @@ func FileGenerator(filters ...string) GeneratorFunc {
 			if entry.IsDir() {
 				if dirOnly || len(filterSet) == 0 {
 					results = append(results, Suggestion{
-						Cmd:  fullPath + "/",
-						Desc: "directory",
+						Cmd:      fullPath + "/",
+						Desc:     "directory",
+						Priority: 50,
 					})
 				} else {
 					// scan only 1 level deeper if there is a filter
@@ -122,8 +123,9 @@ func FileGenerator(filters ...string) GeneratorFunc {
 							ext := strings.ToLower(filepath.Ext(subName))
 							if filterSet[ext] {
 								results = append(results, Suggestion{
-									Cmd:  fullPath + "/" + subName,
-									Desc: "file",
+									Cmd:      fullPath + "/" + subName,
+									Desc:     "file",
+									Priority: 50,
 								})
 							}
 						}
@@ -143,9 +145,14 @@ func FileGenerator(filters ...string) GeneratorFunc {
 					continue
 				}
 			}
+			desc := "file"
+			if ext := strings.ToLower(filepath.Ext(name)); ext != "" {
+				desc = strings.TrimPrefix(ext, ".")
+			}
 			results = append(results, Suggestion{
-				Cmd:  fullPath,
-				Desc: "file",
+				Cmd:      fullPath,
+				Desc:     desc,
+				Priority: 50,
 			})
 		}
 

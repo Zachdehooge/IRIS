@@ -1,6 +1,8 @@
 package spec
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -135,4 +137,97 @@ func TestLookupConcurrent(t *testing.T) {
 		})
 	}
 	wg.Wait()
+}
+
+func TestLookup_AliasFileGenerator(t *testing.T) {
+	ResetRegistry()
+	Register(&Spec{
+		Name:      "nvim",
+		Generator: FileGenerator(),
+	})
+	// alias "nv" -> "nvim", single token with trailing space
+	ShellAliases = map[string]string{"nv": "nvim"}
+
+	results := Lookup("nv ")
+	if len(results) == 0 {
+		t.Errorf("expected file suggestions for alias 'nv ' -> 'nvim', got none")
+	}
+	for _, r := range results {
+		if !strings.HasPrefix(r.Cmd, "nvim ") {
+			t.Errorf("expected suggestion to start with 'nvim ', got %q", r.Cmd)
+		}
+	}
+}
+
+func TestLookup_NvimFileGenerator(t *testing.T) {
+	ResetRegistry()
+	Register(&Spec{
+		Name:      "nvim",
+		Generator: FileGenerator(),
+	})
+	results := Lookup("nvim ")
+	if len(results) == 0 {
+		t.Errorf("expected file suggestions for 'nvim ', got none")
+	}
+}
+
+func TestLookup_OptionAndFilePriority(t *testing.T) {
+	ResetRegistry()
+	Register(&Spec{
+		Name:      "nvim",
+		Generator: FileGenerator(),
+		Options: []Option{
+			{Name: "-c", Description: "Execute cmd"},
+			{Name: "--cmd", Description: "Execute cmd before config"},
+		},
+	})
+
+	// When query is 'nvim ', files should be prioritized over flags
+	resultsEmpty := Lookup("nvim ")
+	if len(resultsEmpty) == 0 {
+		t.Fatalf("expected results for 'nvim ', got 0")
+	}
+	// first result should be a file or dir (Priority 50), not option (Priority 10)
+	if strings.HasPrefix(resultsEmpty[0].Cmd, "nvim -") {
+		t.Errorf("expected file/dir as top result for 'nvim ', got %q", resultsEmpty[0].Cmd)
+	}
+
+	// When query is 'nvim -', flags should be prioritized (Priority 80)
+	resultsDash := Lookup("nvim -")
+	if len(resultsDash) == 0 {
+		t.Fatalf("expected results for 'nvim -', got 0")
+	}
+	if !strings.HasPrefix(resultsDash[0].Cmd, "nvim -") {
+		t.Errorf("expected option as top result for 'nvim -', got %q", resultsDash[0].Cmd)
+	}
+}
+
+func TestLookup_NestedDirectoryTrailingSpace(t *testing.T) {
+	ResetRegistry()
+	Register(&Spec{
+		Name:      "cat",
+		Generator: FileGenerator(),
+	})
+
+	tmpDir := t.TempDir()
+	subDir := filepath.Join(tmpDir, "subdir")
+	_ = os.Mkdir(subDir, 0755)
+	testFile := filepath.Join(subDir, "hello.txt")
+	_ = os.WriteFile(testFile, []byte("hi"), 0644)
+
+	query := "cat " + subDir + "/ "
+	results := Lookup(query)
+	if len(results) == 0 {
+		t.Fatalf("expected results for %q, got 0", query)
+	}
+	found := false
+	for _, r := range results {
+		if strings.Contains(r.Cmd, "hello.txt") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected hello.txt in results, got %v", results)
+	}
 }
