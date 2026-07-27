@@ -208,12 +208,20 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 	var results []HistResult
 	seenCmds := make(map[string]bool)
 
-	addMatches := func(q string) {
+	addMatches := func(q string, subcmdFilter bool) {
 		qLow := strings.ToLower(q)
 		queryFirstWord := ""
+		querySecondWord := ""
 		if strings.IndexByte(qLow, ' ') != -1 {
 			if fields := strings.Fields(qLow); len(fields) > 0 {
 				queryFirstWord = fields[0]
+				// find first non-flag token after the command as the subcommand
+				for _, f := range fields[1:] {
+					if !strings.HasPrefix(f, "-") {
+						querySecondWord = f
+						break
+					}
+				}
 			}
 		}
 
@@ -224,15 +232,26 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 			}
 
 			// filter results by command name match
+			fields := strings.Fields(m.Str)
 			firstWord := m.Str
-			if idx := strings.IndexByte(m.Str, ' '); idx != -1 {
-				firstWord = m.Str[:idx]
+			if len(fields) > 0 {
+				firstWord = fields[0]
 			}
 			firstWordLow := strings.ToLower(firstWord)
 
 			if queryFirstWord != "" {
 				if firstWordLow != queryFirstWord {
 					continue
+				}
+				// when query has a non-flag second token, filter by subcommand prefix
+				if subcmdFilter && querySecondWord != "" {
+					if len(fields) < 2 {
+						continue
+					}
+					secondWordLow := strings.ToLower(fields[1])
+					if !strings.HasPrefix(secondWordLow, querySecondWord) {
+						continue
+					}
 				}
 			} else {
 				if !strings.HasPrefix(firstWordLow, qLow) {
@@ -249,10 +268,18 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 		}
 	}
 
-	addMatches(query)
-
+	addMatches(query, true)
 	for _, altQ := range alternativeQueries {
-		addMatches(altQ)
+		addMatches(altQ, true)
+	}
+
+	// fallback: if subcommand filter produced nothing, retry without it
+	// so typos like "git chckout" still surface fuzzy matches
+	if len(results) == 0 {
+		addMatches(query, false)
+		for _, altQ := range alternativeQueries {
+			addMatches(altQ, false)
+		}
 	}
 
 	getTier := func(cmd, q string) int {
