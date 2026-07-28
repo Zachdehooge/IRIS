@@ -2,6 +2,7 @@ package root
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -19,28 +20,12 @@ func MergeResults(query string, mode string) []spec.Suggestion {
 	maxSugg := config.Get().UI.MaxSuggestions
 	seen := make(map[string]bool)
 	deduped := []spec.Suggestion{}
-
-	// always call lookup to scan aliases and get spec suggestions
-	logger.Debugf("Merge Calling Lookup for '%s'", query)
-	cmdResults := spec.Lookup(query)
-
-	// search history if in history mode
-	var histResults []integration.HistResult
-	if mode == "history" {
-		aliases := spec.GetAliasesCopy()
-		histResults, _ = integration.SearchHistory(query, aliases)
-	}
-
 	normalizedQuery := strings.TrimSpace(query)
 
 	// add suggestion helper to deduplicate
 	addSuggestion := func(s spec.Suggestion) {
 		normalizedCmd := strings.TrimSpace(s.Cmd)
-		if normalizedCmd == "" {
-			return
-		}
-		// filter exact match to avoid loops and redundant suggestions
-		if normalizedCmd == normalizedQuery {
+		if normalizedCmd == "" || normalizedCmd == normalizedQuery {
 			return
 		}
 		if s.Source == "" {
@@ -55,46 +40,86 @@ func MergeResults(query string, mode string) []spec.Suggestion {
 		}
 	}
 
+	// always call lookup to scan aliases and get spec suggestions
+	logger.Debugf("Merge Calling Lookup for '%s'", query)
+	cmdResults := spec.Lookup(query)
+
 	if mode == "history" {
-		// history mode: history first, then spec/alias
-		for _, h := range histResults {
+		aliases := spec.GetAliasesCopy()
+		histResults, _ := integration.SearchHistory(query, aliases)
+
+		// scale confidence based on recency (index in histResults) so the most recent commands stay on top
+		baseConf := 75
+		for i, h := range histResults {
+			conf := max(baseConf-(i*2), 60)
 			addSuggestion(spec.Suggestion{
 				Cmd:        h.Cmd,
 				Desc:       "history",
 				Icon:       "history",
 				Source:     "history",
-				Confidence: 70,
+				Confidence: conf,
 			})
 		}
-		for _, s := range cmdResults {
-			addSuggestion(s)
-		}
-	} else {
-		// spec mode: spec/alias only
-		for _, s := range cmdResults {
-			addSuggestion(s)
-		}
+	}
+
+	for _, s := range cmdResults {
+		addSuggestion(s)
 	}
 
 	if mode == "history" && normalizedQuery == "" {
 		if len(deduped) > maxSugg {
-			deduped = deduped[:maxSugg]
+			return deduped[:maxSugg]
 		}
 		return deduped
 	}
 
+	injectAISuggestion(&deduped, seen, normalizedQuery)
+
+	var finalResults []spec.Suggestion
+	if mode == "history" {
+		sort.SliceStable(deduped, func(i, j int) bool {
+			return deduped[i].Confidence > deduped[j].Confidence
+		})
+		finalResults = deduped
+	} else {
+		cwd := spec.GetCWD()
+		tokens := spec.Tokenize(query)
+		rootCmd := ""
+		if len(tokens) > 0 {
+			rootCmd = tokens[0]
+		}
+		
+		ctxTimeout, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+		defer cancel()
+		store, _ := scoring.GetFrecencyStore()
+		signals := scoring.CollectSignals(ctxTimeout, cwd, query, rootCmd, store, getPrevSkeleton())
+		scored := scoring.Score(deduped, signals)
+
+		finalResults = make([]spec.Suggestion, 0, len(scored))
+		for _, sc := range scored {
+			finalResults = append(finalResults, sc.Suggestion)
+		}
+	}
+
+	if len(finalResults) > maxSugg {
+		return finalResults[:maxSugg]
+	}
+	return finalResults
+}
+
+func injectAISuggestion(deduped *[]spec.Suggestion, seen map[string]bool, normalizedQuery string) {
 	if aiSugg := GetCurrentAISuggestion(); aiSugg != nil {
 		normalizedCmd := strings.TrimSpace(aiSugg.Cmd)
 		if normalizedCmd != "" && normalizedCmd != normalizedQuery && strings.HasPrefix(strings.ToLower(normalizedCmd), strings.ToLower(normalizedQuery)) {
 			if !seen[aiSugg.Cmd] {
 				seen[aiSugg.Cmd] = true
-				deduped = append(deduped, *aiSugg)
+				*deduped = append(*deduped, *aiSugg)
 			} else {
-				for i, item := range deduped {
+				for i, item := range *deduped {
 					if item.Cmd == aiSugg.Cmd && aiSugg.Confidence > item.Confidence {
-						deduped[i].Confidence = aiSugg.Confidence
-						if deduped[i].Source == "" || deduped[i].Source == "spec" || deduped[i].Source == "history" {
-							deduped[i].Source = "ai"
+						(*deduped)[i].Confidence = aiSugg.Confidence
+						if (*deduped)[i].Source == "" || (*deduped)[i].Source == "spec" || (*deduped)[i].Source == "history" {
+							(*deduped)[i].Source = "ai"
 						}
 						break
 					}
@@ -102,28 +127,6 @@ func MergeResults(query string, mode string) []spec.Suggestion {
 			}
 		}
 	}
-
-	cwd := spec.GetCWD()
-	tokens := spec.Tokenize(query)
-	rootCmd := ""
-	if len(tokens) > 0 {
-		rootCmd = tokens[0]
-	}
-	ctxTimeout, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
-	defer cancel()
-	store, _ := scoring.GetFrecencyStore()
-	signals := scoring.CollectSignals(ctxTimeout, cwd, query, rootCmd, store, getPrevSkeleton())
-	scored := scoring.Score(deduped, signals)
-
-	finalResults := make([]spec.Suggestion, 0, len(scored))
-	for _, sc := range scored {
-		finalResults = append(finalResults, sc.Suggestion)
-	}
-
-	if len(finalResults) > maxSugg {
-		finalResults = finalResults[:maxSugg]
-	}
-	return finalResults
 }
 
 var (
