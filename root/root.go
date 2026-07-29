@@ -80,10 +80,21 @@ func runWatchdog() {
 		return
 	}
 
-	// save original terminal settings in parent process
-	watchdogOldState, errState := term.MakeRaw(int(os.Stdin.Fd()))
-	if errState == nil {
-		_ = term.Restore(int(os.Stdin.Fd()), watchdogOldState)
+	cmdStdin := os.Stdin
+	if !term.IsTerminal(int(cmdStdin.Fd())) {
+		if tty, ttyErr := os.OpenFile("/dev/tty", os.O_RDWR, 0); ttyErr == nil {
+			cmdStdin = tty
+		}
+	}
+
+	// save original terminal settings in parent process if Stdin is a terminal
+	var watchdogOldState *term.State
+	if term.IsTerminal(int(cmdStdin.Fd())) {
+		var errState error
+		watchdogOldState, errState = term.MakeRaw(int(cmdStdin.Fd()))
+		if errState == nil {
+			_ = term.Restore(int(cmdStdin.Fd()), watchdogOldState)
+		}
 	}
 
 	r, w, err := os.Pipe()
@@ -94,7 +105,7 @@ func runWatchdog() {
 
 	cmd := exec.CommandContext(context.Background(), exe, os.Args[1:]...)
 	cmd.Env = append(os.Environ(), "IRIS_IS_CHILD=true")
-	cmd.Stdin = os.Stdin
+	cmd.Stdin = cmdStdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = w
 
@@ -160,7 +171,7 @@ func runWatchdog() {
 			WriteCrashLog(string(content))
 			// restore terminal state if watchdog saved it
 			if watchdogOldState != nil {
-				_ = term.Restore(int(os.Stdin.Fd()), watchdogOldState)
+				_ = term.Restore(int(cmdStdin.Fd()), watchdogOldState)
 			}
 			printCrashNotice()
 			startRescueShell()

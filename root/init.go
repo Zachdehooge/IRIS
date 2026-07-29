@@ -31,7 +31,7 @@ if [ -n "$TMUX" ] && [ -n "$IRIS_PID" ]; then
     fi
 fi
 
-if [ -z "$IRIS_PID" ]; then
+if [ -z "$IRIS_PID" ] && [ -z "$IRIS_RESCUE" ]; then
     export IRIS_ACTIVE_SHELL="zsh"
     exec iris
 fi
@@ -67,7 +67,7 @@ if [ -n "$TMUX" ] && [ -n "$IRIS_PID" ]; then
     fi
 fi
 
-if [ -z "$IRIS_PID" ]; then
+if [ -z "$IRIS_PID" ] && [ -z "$IRIS_RESCUE" ]; then
     export IRIS_ACTIVE_SHELL="bash"
     exec iris
 fi
@@ -83,9 +83,19 @@ if set -q TMUX; and set -q IRIS_PID
     end
 end
 
-if not set -q IRIS_PID
+if status is-interactive; and not set -q IRIS_PID; and not set -q IRIS_RESCUE
     set -gx IRIS_ACTIVE_SHELL "fish"
     exec iris
+end
+
+# Iris Autocomplete Hook
+if set -q IRIS_PID; and set -q IRIS_FD
+    function _iris_fish_postexec --on-event fish_postexec
+        echo -n -e "IRIS_CMD_STOP\x00" >&$IRIS_FD 2>/dev/null
+    end
+    function _iris_fish_preexec --on-event fish_preexec
+        echo -n -e "IRIS_CMD_START\x00" >&$IRIS_FD 2>/dev/null
+    end
 end
 `)
 		}
@@ -149,19 +159,26 @@ var setupCmd = &cobra.Command{
 			return
 		}
 
-		content, _ := os.ReadFile(configFile)
+		content, readErr := os.ReadFile(configFile)
 		if strings.Contains(string(content), "iris init") {
 			fmt.Printf("Iris is already configured in %s\n", configFile)
 		} else {
-			f, err := os.OpenFile(configFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+			var newContent string
+			if readErr == nil && len(content) > 0 {
+				newContent = "# Iris Autocomplete\n" + evalCmd + "\n\n" + string(content)
+			} else {
+				newContent = "# Iris Autocomplete\n" + evalCmd + "\n"
+			}
+			if mkdirErr := os.MkdirAll(filepath.Dir(configFile), 0755); mkdirErr != nil {
+				fmt.Printf("Failed to create directory for %s: %v\n", configFile, mkdirErr)
+				return
+			}
+			err = os.WriteFile(configFile, []byte(newContent), 0644)
 			if err != nil {
 				fmt.Printf("Failed to update %s: %v\n", configFile, err)
 				return
 			}
-			defer func() { _ = f.Close() }()
-
-			_, _ = f.WriteString("\n# Iris Autocomplete\n" + evalCmd + "\n")
-			fmt.Printf("✓ Added iris integration to %s\n", configFile)
+			fmt.Printf("✓ Added iris integration to top of %s\n", configFile)
 		}
 
 		// initialize default config file if it does not exist
