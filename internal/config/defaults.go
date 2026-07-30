@@ -7,6 +7,7 @@ func DefaultConfig() *Config {
 		Core: CoreConfig{
 			Version:     1,
 			Shell:       "",
+			ShellLogin:  false,
 			Mode:        "last",
 			Debug:       false,
 			ExpandAlias: true,
