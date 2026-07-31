@@ -85,7 +85,7 @@ nfpms:
       license: "MIT"
       file_name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
       scripts:
-          prerm: "scripts/prerm.sh"
+          preremove: "scripts/prerm.sh"
       formats:
           - deb
           - rpm
