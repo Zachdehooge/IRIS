@@ -4,12 +4,13 @@
   <img width="15%" alt="logo" src="https://github.com/user-attachments/assets/10b7ca98-872b-44a2-bdcd-265f18aa0564" />
 
   <!-- <h1>IRIS</h1> -->
-  <p>IRIS (Intelligent Real-time Input Suggestion) - A shell auto-completion tool that works like code editor's IntelliSense</p>
-    <a href="https://trendshift.io/repositories/95378?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-95378" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/95378" alt="versenilvis%2FIRIS | Trendshift" width="250" height="55"/></a>
+  
+   
   
   [![macOS](https://img.shields.io/badge/macOS-FFFFFF?style=for-the-badge&logo=apple&logoColor=black)](https://www.apple.com/macos/)
   [![Linux](https://img.shields.io/badge/Linux-131415?style=for-the-badge&logo=linux&logoColor=white)](https://www.kernel.org/)
 <br>
+ <a href="https://trendshift.io/repositories/95378?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-95378" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/95378" alt="versenilvis%2FIRIS | Trendshift" width="250" height="55"/></a>
   <!--[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/versenilvis/IRIS/release.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=Actions)](https://github.com/versenilvis/IRIS/actions/workflows/release.yml)-->
   [![Status](https://img.shields.io/badge/status-beta-yellow?style=for-the-badge&logo=github&logoColor=white)]()
   [![License: 0BSD](https://img.shields.io/badge/License-0BSD-blue?style=for-the-badge&logo=github&logoColor=white)](./LICENSE)
@@ -17,6 +18,7 @@
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=for-the-badge&logo=github&logoColor=white)](./CONTRIBUTING.md)
   
   <a href="#why-iris-instead-of-fig">Comparison</a> · <a href="#install">Install</a> · <a href="#default-shortcuts">Shortcuts</a> · <a href="#configuration-guide">Configuration</a> · <a href="#reporting-bugs">Reporting bugs</a>
+  <p>IRIS (Intelligent Real-time Input Suggestion) - A shell auto-completion tool that works like code editor's IntelliSense</p>
 
 </div>
 <div align="center">
