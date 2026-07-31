@@ -235,6 +235,9 @@ debug = false
 # automatically expand aliases on space
 expand-alias = true
 
+# automatically execute command after accepting suggestion
+auto-execute = false
+
 [ui]
 # visual style: "modern" (icons, category pills, shortcut footer) or "classic" (minimalist, centered number, no icons)
 style = "modern"
@@ -254,6 +257,9 @@ max-suggestions = 100
 # maximum height of the overlay
 max-height = 15
 
+# maximum width of the overlay (0 = responsive to terminal)
+max-width = 0
+
 [git]
 # hide current branch in checkout/switch list
 filter-active-branch = true
@@ -272,10 +278,11 @@ channel = "stable"
 check-interval = "24h"
 
 [keybindings]
-toggle_mode = "ctrl+r"
-toggle_menu = "shift+tab"
-select_suggestion = "tab"
-accept_suggestion = "right"
+toggle-mode = "ctrl+r"
+toggle-menu = "shift+tab"
+select = "tab"
+navigate-up = "up"
+navigate-down = "down"
 `
 				if errWrite := os.WriteFile(path, []byte(defaultContent), 0644); errWrite == nil {
 					fmt.Printf("✓ Initialized default config file at %s\n", path)

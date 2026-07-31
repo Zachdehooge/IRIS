@@ -11,6 +11,7 @@ func DefaultConfig() *Config {
 			Mode:        "last",
 			Debug:       false,
 			ExpandAlias: true,
+			AutoExecute: false,
 		},
 		UI: UIConfig{
 			Style:           "modern",
@@ -18,6 +19,7 @@ func DefaultConfig() *Config {
 			ShowHiddenFiles: false,
 			MaxSuggestions:  100,
 			MaxHeight:       15,
+			MaxWidth:        0, // 0 means no limit, fallback to terminal width
 			NerdFonts:       true,
 		},
 		Git: GitConfig{
@@ -42,8 +44,11 @@ func DefaultConfig() *Config {
 			},
 		},
 		Keybindings: KeybindingsConfig{
-			ToggleMode: "ctrl+r",
-			ToggleMenu: "shift+tab",
+			ToggleMode:       "ctrl+r",
+			ToggleMenu:       "shift+tab",
+			SelectSuggestion: "tab",
+			NavigateUp:       "up",
+			NavigateDown:     "down",
 		},
 	}
 }

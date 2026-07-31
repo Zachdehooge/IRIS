@@ -39,6 +39,7 @@ type CoreConfig struct {
 	Mode        string `toml:"mode"`
 	Debug       bool   `toml:"debug"`
 	ExpandAlias bool   `toml:"expand-alias"`
+	AutoExecute bool   `toml:"auto-execute"`
 }
 
 type UIConfig struct {
@@ -47,6 +48,7 @@ type UIConfig struct {
 	ShowHiddenFiles bool   `toml:"hidden-files"`
 	MaxSuggestions  int    `toml:"max-suggestions"`
 	MaxHeight       int    `toml:"max-height"`
+	MaxWidth        int    `toml:"max-width"`
 	NerdFonts       bool   `toml:"nerd-fonts"`
 }
 
@@ -62,8 +64,11 @@ type UpdaterConfig struct {
 }
 
 type KeybindingsConfig struct {
-	ToggleMode string `toml:"toggle-mode"`
-	ToggleMenu string `toml:"toggle-menu"`
+	ToggleMode       string `toml:"toggle-mode"`
+	ToggleMenu       string `toml:"toggle-menu"`
+	SelectSuggestion string `toml:"select"`
+	NavigateUp       string `toml:"navigate-up"`
+	NavigateDown     string `toml:"navigate-down"`
 }
 
 type SuggestOnEmptyConfig struct {
@@ -185,6 +190,23 @@ func Load() (*Config, error) {
 	}
 
 	applyEnv(cfg)
+
+	// fallback for empty keybindings
+	if cfg.Keybindings.ToggleMode == "" {
+		cfg.Keybindings.ToggleMode = "ctrl+r"
+	}
+	if cfg.Keybindings.ToggleMenu == "" {
+		cfg.Keybindings.ToggleMenu = "shift+tab"
+	}
+	if cfg.Keybindings.SelectSuggestion == "" {
+		cfg.Keybindings.SelectSuggestion = "tab"
+	}
+	if cfg.Keybindings.NavigateUp == "" {
+		cfg.Keybindings.NavigateUp = "up"
+	}
+	if cfg.Keybindings.NavigateDown == "" {
+		cfg.Keybindings.NavigateDown = "down"
+	}
 
 	if err := validate(cfg); err != nil {
 		return cfg, fmt.Errorf("config: invalid value: %w", err)
