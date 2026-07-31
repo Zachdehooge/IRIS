@@ -117,6 +117,9 @@ iris uninstall
 
 ## Shell setup
 
+> [!WARNING]
+> **IRIS may cause visual conflicts and keybinding overlaps with other shell autosuggestion plugins or third-party completion tools. To prevent this, please disable them safely (e.g., zsh-autosuggestions, zsh-autocomplete, atuin, flyline, ...)**
+
 Add an alias to your shell configuration file to launch IRIS easily:
 
 **Zsh (`~/.zshrc`):**
