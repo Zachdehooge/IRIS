@@ -53,8 +53,11 @@ mode = "last"
 # enable debug logging
 debug = false
 
-# auto expand alias when typing space
+# automatically expand aliases on space
 expand-alias = true
+
+# automatically execute command after accepting suggestion
+auto-execute = false
 
 [ui]
 # visual style: "modern" (icons, category pills, shortcut footer) or "classic" (minimalist, centered number, no icons)
@@ -63,11 +66,11 @@ style = "modern"
 # enable Nerd Fonts icons in overlay menu
 nerd-fonts = true
 
+# show hidden files with dot prefix
+hidden-files = false
+
 # enable inline ghost text
 ghost-text = true
-
-# show hidden files (starting with dot) in file generator
-hidden-files = false
 
 # maximum suggestions to display
 max-suggestions = 100
@@ -75,12 +78,8 @@ max-suggestions = 100
 # maximum height of the overlay
 max-height = 15
 
-[keybindings]
-# toggle between spec and history mode
-toggle-mode = "ctrl+r"
-
-# toggle menu visibility
-toggle-menu = "ctrl+space"
+# maximum width of the overlay (0 = responsive to terminal)
+max-width = 0
 
 [git]
 # hide current branch in checkout/switch list
@@ -98,6 +97,13 @@ channel = "stable"
 
 # interval between update checks, e.g. "24h", "6h", "30m"
 check-interval = "24h"
+
+[keybindings]
+toggle-mode = "ctrl+r"
+toggle-menu = "shift+tab"
+select = "tab"
+navigate-up = "up"
+navigate-down = "down"
 `
 		err = os.WriteFile(path, []byte(defaultContent), 0644)
 		if err != nil {
