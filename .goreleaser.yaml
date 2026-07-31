@@ -38,7 +38,7 @@ release:
         ```
 # AUR
 aurs:
-    - name: iris-bin
+    - name: iris-cli-bin
       package: |-
           install -Dm755 "./iris" "${pkgdir}/usr/bin/iris"
       install: "scripts/aur.install"
@@ -48,7 +48,7 @@ aurs:
           - "VERSE <sunnyone0901@gmail.com>"
       license: "MIT"
       private_key: "{{ .Env.AUR_KEY }}"
-      git_url: "ssh://aur@aur.archlinux.org/iris-bin.git"
+      git_url: "ssh://aur@aur.archlinux.org/iris-cli-bin.git"
       commit_author:
           name: "goreleaserbot"
           email: "bot@goreleaser.com"
@@ -56,6 +56,7 @@ aurs:
       provides:
           - iris
       conflicts:
+          - iris
           - iris-bin
 # Homebrew
 brews:
