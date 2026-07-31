@@ -60,5 +60,5 @@ jobs:
                   args: release --clean
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  AUR_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+                  AUR_KEY: ${{ secrets.AUR_KEY }}
                   HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}

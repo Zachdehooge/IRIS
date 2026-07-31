@@ -48,7 +48,7 @@ aurs:
           - "VERSE <sunnyone0901@gmail.com>"
       license: "MIT"
       private_key: "{{ .Env.AUR_KEY }}"
-      git_url: "ssh://aur@aur.archlinux.org/iris.git"
+      git_url: "ssh://aur@aur.archlinux.org/iris-bin.git"
       commit_author:
           name: "goreleaserbot"
           email: "bot@goreleaser.com"
