@@ -11,3 +11,6 @@ scratch/
 .env
 .byte/
 dist/
+vendor/
+iris-*-vendor.tar.gz
+iris-*-vendor.tar.gz.sha256
