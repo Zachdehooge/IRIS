@@ -2,13 +2,13 @@
   <!-- <img width="50%" alt="banner" src="https://github.com/user-attachments/assets/c5ec623b-8259-473f-b7c3-3d01a64deb5d" /> -->
   <!-- <img width="25%" alt="logo" src="https://github.com/user-attachments/assets/79d3913c-56b7-42cb-8b07-53e98f39322b" /> -->
   <img width="15%" alt="logo" src="https://github.com/user-attachments/assets/10b7ca98-872b-44a2-bdcd-265f18aa0564" />
-  
+
   <!-- <h1>IRIS</h1> -->
   <p>IRIS (Intelligent Real-time Input Suggestion) - A shell auto-completion tool that works like code editor's IntelliSense</p>
-  
-  [![macOS](https://img.shields.io/badge/macOS-FFFFFF?style=for-the-badge&logo=apple&logoColor=black)](https://www.apple.com/macos/)
-  [![Linux](https://img.shields.io/badge/Linux-131415?style=for-the-badge&logo=linux&logoColor=white)](https://www.kernel.org/)
-  <br>
+
+[![macOS](https://img.shields.io/badge/macOS-FFFFFF?style=for-the-badge&logo=apple&logoColor=black)](https://www.apple.com/macos/)
+[![Linux](https://img.shields.io/badge/Linux-131415?style=for-the-badge&logo=linux&logoColor=white)](https://www.kernel.org/)
+<br>
   <!--[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/versenilvis/IRIS/release.yml?branch=main&style=for-the-badge&logo=github&logoColor=white&label=Actions)](https://github.com/versenilvis/IRIS/actions/workflows/release.yml)-->
   [![Status](https://img.shields.io/badge/status-beta-yellow?style=for-the-badge&logo=github&logoColor=white)]()
   [![License: 0BSD](https://img.shields.io/badge/License-0BSD-blue?style=for-the-badge&logo=github&logoColor=white)](./LICENSE)
@@ -38,6 +38,7 @@ Run iris wherever you already work; your local machine, a remote server, or anyw
 -->
 
 ## AI suggestions
+
 <div align="center">
   <img width="1920" height="1080" alt="output" src="https://github.com/user-attachments/assets/ab80fe75-b5dd-4acd-84bb-45bca17ee3b7" />
   <i>IRIS has AI suggestions like your code editor (API key/Local)</i>
@@ -46,7 +47,7 @@ Run iris wherever you already work; your local machine, a remote server, or anyw
 ## Why IRIS instead of Fig
 
 > [!IMPORTANT]
-> **[Fig](https://app.fig.io/) was officially sunset in September 2024 and migrated to Amazon Q Developer (which requires cloud authentication and proprietary bloat)**  
+> **[Fig](https://app.fig.io/) was officially sunset in September 2024 and migrated to Amazon Q Developer (which requires cloud authentication and proprietary bloat)**
 > **IRIS is the lightweight, open-source, zero-telemetry alternative built purely on native Go and TTY with no accounts, no GUI app, and no background daemons required**
 
 ### How it compares
@@ -83,29 +84,141 @@ Shell plugins are great, but they also come with trade-offs. And also, not every
 - Terminal emulator with ANSI color support
 - Go 1.24 or newer (if building from source)
 
+> [!WARNING]
+> Currently, Windows is not supported
 
-#### Method 1: Install script (recommended)
+#### Method 1: Package managers
+
+<details>
+<summary><b>Arch Linux (AUR)</b></summary>
+<br>
+
+IRIS is available on the Arch User Repository. You can install it using your favorite AUR helper:
+
+```bash
+yay -S iris-bin
+```
+</details>
+
+<details>
+<summary><b>macOS / Linux (Homebrew)</b></summary>
+<br>
+
+Install IRIS via Homebrew tap:
+
+```bash
+brew install versenilvis/iris/iris
+```
+</details>
+
+<details>
+<summary><b>Nix Flakes</b></summary>
+<br>
+
+If you are using Nix Flakes, you can consume this module directly without building it manually.
+
+1. In your `flake.nix` inputs, add:
+
+   ```nix
+   iris.url = "github:versenilvis/iris/main";
+   ```
+
+2. Then, use one of the following options to add IRIS to your system:
+
+   **Option A: Try without installing (ephemeral)**
+   ```bash
+   nix run github:versenilvis/iris
+   ```
+
+   **Option B: Install to your user profile**
+   ```bash
+   nix profile install github:versenilvis/iris
+   ```
+
+   **Option C: Using Home Manager**
+   *(Ensure you pass `inputs` to modules via `extraSpecialArgs`)*
+   ```nix
+   home.packages = [ inputs.iris.packages.${pkgs.system}.default ];
+   ```
+
+   **Option D: Without Home Manager (NixOS System)**
+   *(Ensure you pass `inputs` to modules via `specialArgs`)*
+   ```nix
+   environment.systemPackages = [ inputs.iris.packages.${pkgs.system}.default ];
+   ```
+</details>
+
+<details>
+<summary><b>Debian / Ubuntu (.deb)</b></summary>
+<br>
+
+```bash
+curl -sLO https://github.com/versenilvis/iris/releases/latest/download/iris_linux_amd64.deb
+sudo dpkg -i iris_linux_amd64.deb
+rm iris_linux_amd64.deb
+```
+*(For ARM64 architecture, replace `amd64` with `arm64`)*
+</details>
+
+<details>
+<summary><b>Fedora / RHEL (.rpm)</b></summary>
+<br>
+
+```bash
+curl -sLO https://github.com/versenilvis/iris/releases/latest/download/iris_linux_amd64.rpm
+sudo rpm -i iris_linux_amd64.rpm
+rm iris_linux_amd64.rpm
+```
+*(For ARM64 architecture, replace `amd64` with `arm64`)*
+</details>
+
+<details>
+<summary><b>Aqua</b></summary>
+<br>
+
+If you use [aqua](https://aquaproj.github.io/), you can install IRIS by adding it to your `aqua.yaml`:
+
+```yaml
+packages:
+  - name: versenilvis/iris
+```
+
+Then run `aqua i`.
+</details>
+
+<details>
+<summary><b>asdf</b></summary>
+<br>
+
+If you use [asdf](https://asdf-vm.com/), you can install IRIS via its plugin:
+
+```bash
+asdf plugin add iris https://github.com/versenilvis/asdf-iris.git
+asdf install iris latest
+asdf set -u iris latest
+asdf current iris
+```
+</details>
+
+#### Method 2: Install script (recommended)
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/versenilvis/iris/main/scripts/install.sh | sh
 ```
 
-#### Method 2: Go install
+#### Method 3: Go install
 
 ```bash
 go install github.com/versenilvis/iris/cmd/iris@latest
 ```
 
-#### Method 3: Build from source (for developers)
+#### Method 4: Build from source (for developers)
 
 ```bash
 git clone https://github.com/versenilvis/iris.git
 cd iris
 just reload
 ```
-
-> [!WARNING]
-> Currently, Windows is not supported
 
 ## Uninstall
 
@@ -224,18 +337,19 @@ timeout_ms = 5000
 | <kbd>↓</kbd>                       | Navigate down / history | Move the selection down, or open command history when the prompt is empty.|
 | <kbd>→</kbd>                       | Accept ghost text       | Accept the faded ghost text suggestion when the menu is open.             |
 | <kbd>←</kbd> / <kbd>→</kbd>        | Move cursor             | Move the cursor inside the input buffer. Disabled when the prompt is empty|
-| <kbd>Ctrl</kbd> + <kbd>R</kbd>     | Switch mode             | Toggle between `spec` and `history` mode.                                 |
-| <kbd>Ctrl</kbd> + <kbd>A</kbd>     | Beginning of line       | Move the cursor to the start of the command line.                         |
-| <kbd>Ctrl</kbd> + <kbd>E</kbd>     | End of line             | Move the cursor to the end of the command line.                           |
-| <kbd>Ctrl</kbd> + <kbd>L</kbd>     | Clear screen            | Clear the terminal while preserving the input buffer and redrawing the menu. |
-| <kbd>Ctrl</kbd> + <kbd>U</kbd>     | Clear command           | Remove the entire current command and close the menu.                     |
-| <kbd>Ctrl</kbd> + <kbd>C</kbd>     | Cancel command          | Send `SIGINT`, clear the input buffer, and close the menu.                |
-| <kbd>Ctrl</kbd> + <kbd>W</kbd>     | Delete word             | Delete the word immediately before the cursor.                            |
+| <kbd>Ctrl/⌘</kbd> + <kbd>R</kbd>     | Switch mode             | Toggle between `spec` and `history` mode.                                 |
+| <kbd>Ctrl/⌘</kbd> + <kbd>A</kbd>     | Beginning of line       | Move the cursor to the start of the command line.                         |
+| <kbd>Ctrl/⌘</kbd> + <kbd>E</kbd>     | End of line             | Move the cursor to the end of the command line.                           |
+| <kbd>Ctrl/⌘</kbd> + <kbd>L</kbd>     | Clear screen            | Clear the terminal while preserving the input buffer and redrawing the menu. |
+| <kbd>Ctrl/⌘</kbd> + <kbd>U</kbd>     | Clear command           | Remove the entire current command and close the menu.                     |
+| <kbd>Ctrl/⌘</kbd> + <kbd>C</kbd>     | Cancel command          | Send `SIGINT`, clear the input buffer, and close the menu.                |
+| <kbd>Ctrl/⌘</kbd> + <kbd>W</kbd>     | Delete word             | Delete the word immediately before the cursor.                            |
 
 > [!NOTE]
-> With <kbd>Ctrl</kbd> + <kbd>A</kbd>, <kbd>Ctrl</kbd> + <kbd>E</kbd>, <kbd>Ctrl</kbd> + <kbd>W</kbd>, <kbd>Ctrl</kbd> + <kbd>U</kbd>, <kbd>Ctrl</kbd> + <kbd>L</kbd>, and <kbd>Ctrl</kbd> + <kbd>C</kbd>: they belong to your shell by default. IRIS handles them directly in raw mode so your cursor and menu stay in sync
+> With <kbd>Ctrl/⌘</kbd> + <kbd>A</kbd>, <kbd>Ctrl/⌘</kbd> + <kbd>E</kbd>, <kbd>Ctrl/⌘</kbd> + <kbd>W</kbd>, <kbd>Ctrl/⌘</kbd> + <kbd>U</kbd>, <kbd>Ctrl/⌘</kbd> + <kbd>L</kbd>, and <kbd>Ctrl/⌘</kbd> + <kbd>C</kbd>: they belong to your shell by default. IRIS handles them directly in raw mode so your cursor and menu stay in sync
 
 ## Theme
+
 <div align="center">
   <img width="1920" height="1080" alt="Kitty terminal showcase" src="https://github.com/user-attachments/assets/d45cf36e-6d7d-437a-9af9-28cd994bf55f" />
   😺 <i>Kitty terminal</i>
@@ -300,6 +414,7 @@ Thank you!
 I'd love to hear your feedback
 
 Feel free to reach out via:
-* [Email](mailto:versedev.store@proton.me)
-* [Twitter](https://twitter.com/versenilvis)
-* [GitHub issues](https://github.com/versenilvis/iris/issues/new)
+
+- [Email](mailto:versedev.store@proton.me)
+- [Twitter](https://twitter.com/versenilvis)
+- [GitHub issues](https://github.com/versenilvis/iris/issues/new)
