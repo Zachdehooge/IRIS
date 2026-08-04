@@ -242,28 +242,25 @@ iris uninstall
 > [!WARNING]
 > **IRIS may cause visual conflicts and keybinding overlaps with other shell autosuggestion plugins or third-party completion tools. To prevent this, please disable them safely (e.g., zsh-autosuggestions, zsh-autocomplete, atuin, flyline, ...)**
 
-Add an alias to your shell configuration file to launch IRIS easily:
+### Auto-start IRIS on shell init
+
+To automatically start IRIS every time you open a new shell session, add the init command to your shell config:
 
 **Zsh (`~/.zshrc`):**
 ```zsh
-if command -v iris >/dev/null 2>&1; then
-    alias i="iris"
-fi
+eval "$(iris init zsh)"
 ```
 
 **Bash (`~/.bashrc`):**
 ```bash
-if command -v iris >/dev/null 2>&1; then
-    alias i="iris"
-fi
+eval "$(iris init bash)"
 ```
 
 **Fish (`~/.config/fish/config.fish`):**
 ```fish
-if command -v iris >/dev/null 2>&1
-    alias i="iris"
-end
+iris init fish | source
 ```
+
 ## Configuration guide
 
 IRIS uses a clean TOML configuration file located at `~/.config/iris/config.toml`
