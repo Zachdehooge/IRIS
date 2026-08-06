@@ -8,6 +8,11 @@ git:
     # a nightly instead of the real previous stable release
     ignore_tags:
         - "*-nightly.*"
+    # without this, git's default tag sort ranks a same-commit nightly tag
+    # above the stable tag, so goreleaser resolves the nightly as the
+    # "current tag" and tries to re-upload assets into its release, which
+    # already has them and fails with 422 already_exists
+    prerelease_suffix: "-nightly"
 
 builds:
     - env:
