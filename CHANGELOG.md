@@ -2,32 +2,15 @@
 
 All notable changes to this project are documented in this file.
 
-## [Unreleased]
+## [v0.5.3](https://github.com/versenilvis/iris/releases/tag/v0.5.3) - 2026-08-07
 
 ### Bug fixes
 
 - Follow the shell working directory in the wrapper process ([#129](https://github.com/versenilvis/iris/issues/129)) ([4a4ab3](https://github.com/versenilvis/iris/commit/4a4ab3c102067f7a24f737987e80fbb7cedbe86c))
-- Fall back to raw body for nightly releases ([005ed5](https://github.com/versenilvis/iris/commit/005ed5ae469953eec4d20d91fe647cb42151b98b))
-- Invalidate cache when the updater channel changes ([5845fc](https://github.com/versenilvis/iris/commit/5845fcb0511b3a6b6bfae2cadba3735e244e3331))
-- Only strip GoReleaser's exact heading, not real content ([a8779d](https://github.com/versenilvis/iris/commit/a8779d56e67beb859caaee3af7371bbdb829ef77))
-- Use full commit SHAs in CHANGELOG.md for GitHub autolinking ([4d5e86](https://github.com/versenilvis/iris/commit/4d5e86ac9d142c38be7c9231f6576cc73371a73d))
-- Link commit SHAs and PR numbers in CHANGELOG.md ([4416d1](https://github.com/versenilvis/iris/commit/4416d16fe6c216950d25856d212a9c8d3af8d0bf))
-
-### Documentation
-
-- Document changelog and auto-update ([80ee17](https://github.com/versenilvis/iris/commit/80ee178932a7d2b1b75dd516e9b95aee035c05b5))
 
 ### Features
 
-- Generate CHANGELOG.md with git-cliff ([6f9a2b](https://github.com/versenilvis/iris/commit/6f9a2b9500535a70f08b2bd47949d9e560122013))
-- Group release notes by commit type ([0421ed](https://github.com/versenilvis/iris/commit/0421ed853b79759ba6e215a95288c9f5a72ef9c3))
-- Add changelog command ([5745dc](https://github.com/versenilvis/iris/commit/5745dc7ca46872076d3f9369d85fb3743db856e5))
-- Show changelog in update notification ([27e745](https://github.com/versenilvis/iris/commit/27e7453ab27998c0ffd643cb8821c0a56c998989))
-- Add auto-update option ([db2055](https://github.com/versenilvis/iris/commit/db2055a4c3e50a11099a5a32c881c5241014bfc9))
-- Auto install updates in background ([359480](https://github.com/versenilvis/iris/commit/359480d77c065f783761ee86e988eaee58c1ec31))
-- Shape nightly changelog like stable release groups ([ae39b4](https://github.com/versenilvis/iris/commit/ae39b4731f381d2e5f192b805e49a57f463f38e7))
-- Render release notes with glamour ([8b2dba](https://github.com/versenilvis/iris/commit/8b2dba99fa0022016d7d731ef617fb2aaa1868f8))
-- Compact rendering and per-version lookup ([445553](https://github.com/versenilvis/iris/commit/445553b15180dff0af5113e8a89be55442f54d64))
+- Update changelog ([#131](https://github.com/versenilvis/iris/issues/131)) ([87b91c](https://github.com/versenilvis/iris/commit/87b91c45d78af997fa2569b2f8bf0f2db0f50f9e))
 
 ## [v0.5.2](https://github.com/versenilvis/iris/releases/tag/v0.5.2) - 2026-08-06
 
