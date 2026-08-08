@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.5.4](https://github.com/versenilvis/iris/releases/tag/v0.5.4) - 2026-08-08
+
+### Bug fixes
+
+- Update stale vendorHash for new go.mod dependencies ([#132](https://github.com/versenilvis/iris/issues/132)) ([e334af](https://github.com/versenilvis/iris/commit/e334af8d883b62a40e2c02cc11b001f68cdc7153))
+
+### Documentation
+
+- Update for v0.5.3 [skip ci] ([55d559](https://github.com/versenilvis/iris/commit/55d55957c0b9e6ee17e2a6598e33a2c128647567))
+
 ## [v0.5.3](https://github.com/versenilvis/iris/releases/tag/v0.5.3) - 2026-08-07
 
 ### Bug fixes
