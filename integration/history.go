@@ -2,6 +2,8 @@ package integration
 
 import (
 	"bufio"
+	"context"
+	"database/sql"
 	"os"
 	"path/filepath"
 	"sort"
@@ -11,6 +13,8 @@ import (
 
 	"github.com/versenilvis/fuzzy"
 	"github.com/versenilvis/iris/integration/shell"
+	"github.com/versenilvis/iris/internal/config"
+	_ "modernc.org/sqlite"
 )
 
 var (
@@ -19,9 +23,14 @@ var (
 
 	historyCache  []string
 	idMapCache    map[string]int
+	sourceMapCache map[string]string
 	searcherCache *fuzzy.Searcher
 	mu            sync.Mutex
 	lastModTime   int64
+
+	atuinCmds    []string
+	atuinLastMod int64
+	lastAtuinMode int = -1
 )
 
 func RecordSessionCommand(cmd string) {
@@ -47,10 +56,12 @@ type HistResult struct {
 	ID         int
 	Cmd        string
 	FuzzyScore int
+	Source     string
 }
 
 func init() {
 	idMapCache = make(map[string]int)
+	sourceMapCache = make(map[string]string)
 }
 
 func sanitizeUTF8(s string) string {
@@ -66,6 +77,45 @@ func sanitizeUTF8(s string) string {
 		}
 	}
 	return result.String()
+}
+
+func loadAtuinCmds() ([]string, error) {
+	dbPath, err := config.AtuinDBPath()
+	if err != nil {
+		return nil, err
+	}
+	db, err := sql.Open("sqlite", "file:"+dbPath+"?mode=ro")
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.QueryContext(context.Background(), `SELECT command FROM history WHERE deleted_at IS NULL ORDER BY timestamp DESC LIMIT 10000`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	seen := make(map[string]bool)
+	var cmds []string
+	for rows.Next() {
+		var cmd string
+		if err := rows.Scan(&cmd); err != nil {
+			continue
+		}
+		cmd = strings.TrimSpace(sanitizeUTF8(cmd))
+		cmd = strings.ReplaceAll(cmd, "\n", " ")
+		cmd = strings.ReplaceAll(cmd, "\r", "")
+		if cmd != "" && !seen[cmd] {
+			seen[cmd] = true
+			cmds = append(cmds, cmd)
+		}
+	}
+	// reverse array to be oldest-first
+	for i, j := 0, len(cmds)-1; i < j; i, j = i+1, j-1 {
+		cmds[i], cmds[j] = cmds[j], cmds[i]
+	}
+	return cmds, rows.Err()
 }
 
 func SearchHistory(query string, aliases map[string]string) ([]HistResult, error) {
@@ -96,6 +146,27 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 		}
 	}
 
+	atuinMode := config.Get().Core.Atuin
+	if lastAtuinMode != -1 && atuinMode != lastAtuinMode {
+		historyCache = nil
+	}
+	lastAtuinMode = atuinMode
+
+	if atuinMode > 0 {
+		dbPath, _ := config.AtuinDBPath()
+		if info, err := os.Stat(dbPath); err == nil {
+			mod := info.ModTime().UnixNano()
+			if mod != atuinLastMod {
+				atuinLastMod = mod
+				atuinCmds = nil
+				historyCache = nil
+			}
+		}
+		if atuinCmds == nil {
+			atuinCmds, _ = loadAtuinCmds()
+		}
+	}
+
 	if info, err := os.Stat(histFile); err == nil {
 		if info.ModTime().UnixNano() > lastModTime {
 			historyCache = nil // force reload
@@ -115,53 +186,68 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 		}
 
 		var allCmds []string
-		if file != nil {
-			scanner := bufio.NewScanner(file)
-			for scanner.Scan() {
-				line := scanner.Text()
-				cmd := line
+		if atuinMode == 1 && len(atuinCmds) > 0 {
+			// atuin only — prepend newest-first so the merge loop below works
+			allCmds = atuinCmds
+		} else {
+			if file != nil {
+				scanner := bufio.NewScanner(file)
+				for scanner.Scan() {
+					line := scanner.Text()
+					cmd := line
 
-				if shellName == "zsh" {
-					parts := strings.SplitN(line, ";", 2)
-					if len(parts) == 2 {
-						cmd = parts[1]
-					}
-				} else if shellName == "bash" {
-					if strings.HasPrefix(line, "#") && len(line) > 1 {
-						isTimestamp := true
-						for _, c := range line[1:] {
-							if c < '0' || c > '9' {
-								isTimestamp = false
-								break
+					if shellName == "zsh" {
+						parts := strings.SplitN(line, ";", 2)
+						if len(parts) == 2 {
+							cmd = parts[1]
+						}
+					} else if shellName == "bash" {
+						if strings.HasPrefix(line, "#") && len(line) > 1 {
+							isTimestamp := true
+							for _, c := range line[1:] {
+								if c < '0' || c > '9' {
+									isTimestamp = false
+									break
+								}
+							}
+							if isTimestamp {
+								continue
 							}
 						}
-						if isTimestamp {
+					} else if shellName == "fish" {
+						if after, ok := strings.CutPrefix(line, "- cmd: "); ok {
+							cmd = after
+						} else {
 							continue
 						}
 					}
-				} else if shellName == "fish" {
-					if after, ok := strings.CutPrefix(line, "- cmd: "); ok {
-						cmd = after
-					} else {
-						continue
+
+					cmd = strings.TrimSpace(cmd)
+					if cmd != "" {
+						cmd = sanitizeUTF8(cmd)
+						allCmds = append(allCmds, cmd)
 					}
 				}
-
-				cmd = strings.TrimSpace(cmd)
-				if cmd != "" {
-					cmd = sanitizeUTF8(cmd)
-					allCmds = append(allCmds, cmd)
+				if scanner.Err() != nil {
+					_ = scanner.Err()
 				}
 			}
-			if err := scanner.Err(); err != nil {
-				return nil, err
+			// mode 2: append atuin (newer, higher priority) after shell file
+			if atuinMode == 2 && len(atuinCmds) > 0 {
+				allCmds = append(allCmds, atuinCmds...)
 			}
 		}
 
 		// build historyCache backwards so newest commands come first
 		seen := make(map[string]bool)
+		atuinSeen := make(map[string]bool)
+		for _, c := range atuinCmds {
+			atuinSeen[c] = true
+		}
+
 		historyCache = nil
 		idMapCache = make(map[string]int)
+		sourceMapCache = make(map[string]string)
 
 		currentID := len(sessionHistory) + len(allCmds)
 
@@ -172,6 +258,11 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 				historyCache = append(historyCache, cmd)
 				seen[cmd] = true
 				idMapCache[cmd] = currentID
+				if atuinSeen[cmd] {
+					sourceMapCache[cmd] = "atuin"
+				} else {
+					sourceMapCache[cmd] = "session"
+				}
 				currentID--
 			}
 		}
@@ -183,6 +274,11 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 				historyCache = append(historyCache, cmd)
 				seen[cmd] = true
 				idMapCache[cmd] = currentID
+				if atuinSeen[cmd] {
+					sourceMapCache[cmd] = "atuin"
+				} else {
+					sourceMapCache[cmd] = "history"
+				}
 				currentID--
 			}
 		}
@@ -199,6 +295,7 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 			results = append(results, HistResult{
 				ID:  idMapCache[cmd],
 				Cmd: cmd,
+				Source: sourceMapCache[cmd],
 			})
 		}
 		return results, nil
@@ -264,6 +361,7 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 				ID:         idMapCache[cmd],
 				Cmd:        cmd,
 				FuzzyScore: 10000,
+				Source:     sourceMapCache[cmd],
 			})
 			strictMatches++
 			if strictMatches >= 200 {
@@ -288,6 +386,7 @@ func SearchHistory(query string, aliases map[string]string) ([]HistResult, error
 				ID:         idMapCache[m.Str],
 				Cmd:        m.Str,
 				FuzzyScore: m.Score,
+				Source:     sourceMapCache[m.Str],
 			})
 		}
 	}
