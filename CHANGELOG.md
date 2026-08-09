@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.6.0](https://github.com/versenilvis/iris/releases/tag/v0.6.0) - 2026-08-09
+
+### Documentation
+
+- Update for v0.5.4 [skip ci] ([bf4f42](https://github.com/versenilvis/iris/commit/bf4f424e794ebb0d9a8d73a17967757ead92205d))
+
+### Features
+
+- Atuin history support ([#134](https://github.com/versenilvis/iris/issues/134)) ([dd1fb1](https://github.com/versenilvis/iris/commit/dd1fb156fcbcb10bfc527f9ad4c71e4d240b1a2b))
+
 ## [v0.5.4](https://github.com/versenilvis/iris/releases/tag/v0.5.4) - 2026-08-08
 
 ### Bug fixes
