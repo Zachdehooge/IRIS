@@ -65,6 +65,9 @@ atuin-history = 0
 # custom atuin database path (leave empty for default)
 atuin-db-path = ""
 
+# probe unknown binaries with ` + "`__complete`" + ` for Cobra-based CLI suggestions.
+cobra-probe-enabled = true
+
 [ui]
 # visual style: "modern" (icons, category pills, shortcut footer) or "classic" (minimalist, centered number, no icons)
 style = "modern"
