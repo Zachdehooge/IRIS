@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.6.1](https://github.com/versenilvis/iris/releases/tag/v0.6.1) - 2026-08-11
+
+### Bug fixes
+
+- Exclude auto update changelog commit ([#135](https://github.com/versenilvis/iris/issues/135)) ([0f173f](https://github.com/versenilvis/iris/commit/0f173f78dc186d5beb3b613e4ca36fbdcaf59c70))
+
+### Features
+
+- Add cobra-probe-enabled toggle option and safeguard cobra probing ([#133](https://github.com/versenilvis/iris/issues/133)) ([89fcd6](https://github.com/versenilvis/iris/commit/89fcd6f83000a70e53cb7bfb0b52d733b3450b36))
+
 ## [v0.6.0](https://github.com/versenilvis/iris/releases/tag/v0.6.0) - 2026-08-09
 
 ### Features
