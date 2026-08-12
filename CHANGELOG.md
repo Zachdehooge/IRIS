@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.6.2](https://github.com/versenilvis/iris/releases/tag/v0.6.2) - 2026-08-12
+
+### Bug fixes
+
+- Don't let fish's alt-screen probe permanently hide the overlay ([#141](https://github.com/versenilvis/iris/issues/141)) ([9c00f6](https://github.com/versenilvis/iris/commit/9c00f6eb300975b695b7d329f0b0989384cc3216))
+
 ## [v0.6.1](https://github.com/versenilvis/iris/releases/tag/v0.6.1) - 2026-08-11
 
 ### Bug fixes
