@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [v0.6.3](https://github.com/versenilvis/iris/releases/tag/v0.6.3) - 2026-08-13
+
+### Bug fixes
+
+- Terminal hangs, right arrow blocking, and runaway iris processes ([#142](https://github.com/versenilvis/iris/issues/142)) ([45d182](https://github.com/versenilvis/iris/commit/45d182f07287e4ab1a62169c6b194b4ca276bedc))
+
 ## [v0.6.2](https://github.com/versenilvis/iris/releases/tag/v0.6.2) - 2026-08-12
 
 ### Bug fixes
